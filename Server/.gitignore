@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Uploads / temp
+uploads/
+tmp/
+
+# Logs
+npm-debug.log*
