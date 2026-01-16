@@ -1,3 +1,4 @@
+import "./App.css";
 import React, { useState } from "react";
 import { ethers } from "ethers";
 
@@ -76,27 +77,31 @@ export default function App() {
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: "sans-serif", maxWidth: 900 }}>
-      <h2>Document DApp: Hash + Encrypt + IPFS + Mint NFT</h2>
-
-      <WalletBar
-        account={account}
-        onConnect={async () => {
-          try {
-            await connectWallet();
-          } catch (e) {
-            alert(e?.message || "Failed to connect wallet");
-          }
-        }}
-      />
-
-      <DocumentForm account={account} onProcess={onProcess} busy={busy} />
-
-      <p style={{ marginTop: 12 }}>
-        <b>Status:</b> {status}
-      </p>
-
-      <ResultPanel result={result} />
+  <div className="container">
+    <div className="header">
+      <h1>Document NFT DApp</h1>
+      <p>Upload a document → hash it → encrypt it → store on IPFS → mint ownership as an NFT.</p>
     </div>
-  );
+
+    <WalletBar account={account} onConnect={connectWallet} />
+
+    <div className="grid">
+      <div className="card">
+        <h2>Upload & Mint</h2>
+        <DocumentForm account={account} onProcess={onProcess} busy={busy} />
+        <div className="status">
+          <b>Status:</b> {status}
+        </div>
+      </div>
+
+      <div className="card">
+        <ResultPanel result={result} />
+        <p className="small">
+          (Demo) Encryption key is stored locally. Real systems would protect keys properly.
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
 }
