@@ -11,12 +11,13 @@ import { useDocumentNFT } from "./hooks/UseDocNFT";
 import WalletBar from "./components/walletBar";
 import DocumentForm from "./components/Documentform";
 import ResultPanel from "./components/Results";
+import DecryptDownload from "./components/DecryptDownload";
 
-// Update this whenever you redeploy (or switch to env var later)
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Update this whenever redeployed (or switch to env var later)
+const CONTRACT_ADDRESS = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
 
 export default function App() {
-  const { account, connectWallet } = useWallet();
+  const { account, connectWallet } = useWallet(); // initialises states
   const { mintDocument } = useDocumentNFT(CONTRACT_ADDRESS);
 
   const [status, setStatus] = useState("");
@@ -34,46 +35,41 @@ export default function App() {
       setBusy(true);
       setResult(null);
 
-      const to = recipient?.trim() ? recipient.trim() : account;
+      const to = recipient?.trim() ? recipient.trim() : account; // to the recipient, either at choses address or by default, the person uploading document
       if (!ethers.isAddress(to)) throw new Error("Invalid recipient address");
 
       setStatus("Reading file...");
-      const originalBuffer = await file.arrayBuffer();
+      const originalBuffer = await file.arrayBuffer(); // upload file
 
-      setStatus("Hashing (SHA-256 of original)...");
+      setStatus("Hashing (SHA-256 of original)..."); // hash file
       const docHash = await sha256Hex(originalBuffer);
 
-      setStatus("Encrypting (AES-GCM)...");
+      setStatus("Encrypting (AES-GCM)..."); // encrypt file
       const { ciphertext, iv, rawKey } = await encryptAESGCM(originalBuffer);
 
-      setStatus("Uploading encrypted file to IPFS (via backend)...");
+      setStatus("Uploading encrypted file to IPFS (via backend)..."); // upload file to ipfs server
       const { cid } = await uploadEncryptedToBackend(ciphertext, file.name + ".enc");
 
-      setStatus("Minting NFT on-chain (MetaMask will prompt)...");
+      setStatus("Minting NFT on-chain (MetaMask will prompt)..."); // mint the file
       const tokenId = await mintDocument(to, docHash);
 
-      setStatus("Saving off-chain metadata (localStorage)...");
-      const stored = {
+      setStatus("Saving off-chain metadata (localStorage)..."); // save metadata
+      const stored = { 
         tokenId,
         owner: to,
         filename: file.name,
         cid,
         docHash,
         ivHex: bytesToHex(iv),
-        keyHex: bytesToHex(rawKey), // DEMO ONLY
+        keyHex: bytesToHex(rawKey), // this is for demo purposes
         createdAt: new Date().toISOString(),
       };
+      // save record of document
       saveDocRecord(tokenId, stored);
-
       setResult(stored);
       setStatus(`Done ✅ Minted tokenId=${tokenId}`);
-    } catch (e) {
-      console.error(e);
-      setStatus(`Error: ${e?.message || e}`);
-      alert(e?.message || "Something went wrong");
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) {console.error(e); setStatus(`Error: ${e?.message || e}`); alert(e?.message || "Something went wrong");
+    } finally {setBusy(false);}
   }
 
   return (
@@ -89,17 +85,15 @@ export default function App() {
       <div className="card">
         <h2>Upload & Mint</h2>
         <DocumentForm account={account} onProcess={onProcess} busy={busy} />
-        <div className="status">
-          <b>Status:</b> {status}
-        </div>
+        <div className="status"> <b>Status:</b> {status}</div>
       </div>
 
       <div className="card">
         <ResultPanel result={result} />
-        <p className="small">
-          (Demo) Encryption key is stored locally. Real systems would protect keys properly.
-        </p>
+        <p className="small">(Demo) Encryption key is stored locally. In real systems, the keys would be protect properly.</p>
       </div>
+      <div className="card"> <DecryptDownload /> </div>
+      
     </div>
   </div>
 );

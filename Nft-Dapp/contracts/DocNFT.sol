@@ -9,8 +9,8 @@ contract DocumentNFT is ERC721 {
 
     struct DocumentRecord {
         bytes32 documentHash; // hash of the ORIGINAL document (before encryption)
-        address issuer;       // address that certified / minted the document
-        uint64 issuedAt;      // timestamp of certification
+        address issuer; // address that certified / minted the document
+        uint64 issuedAt; // timestamp of certification
     }
 
     uint256 private nextTokenId = 1;
@@ -26,16 +26,16 @@ contract DocumentNFT is ERC721 {
         address to, /*Owner of the NFT*/
         bytes32 documentHash /* Hash of original document */
     ) external returns (uint256 tokenId) {
-        require(to != address(0), "Invalid recipient");
+        require(to != address(0), "Invalid recipient"); // sanity checks to ensure correct recipient, hash and if document not already hashed
         require(documentHash != bytes32(0), "Invalid hash");
         require(!hashUsed[documentHash], "Document already certified");
 
         hashUsed[documentHash] = true;
 
-        tokenId = nextTokenId++;
+        tokenId = nextTokenId++; //each has a unique tokenid for whatever amount a user uploads
         _safeMint(to, tokenId);
 
-        records[tokenId] = DocumentRecord({
+        records[tokenId] = DocumentRecord({ // store document hash, the sender and when it was issues at
             documentHash: documentHash,
             issuer: msg.sender,
             issuedAt: uint64(block.timestamp)

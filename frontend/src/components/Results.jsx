@@ -1,8 +1,8 @@
 import React from "react";
 
+// This just prints the results
 export default function ResultPanel({ result }) {
-  if (!result) return null;
-
+  if (!result) return null; // safety check in case of no results
   return (
     <div style={{ marginTop: 18 }}>
       <h3>Result</h3>
